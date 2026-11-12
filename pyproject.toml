@@ -1,0 +1,18 @@
+[project]
+name = "fridge"
+version = "0.1.0"
+description = "Масштабируемый FastAPI проект про холодильник"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi[standard]==0.162.0",
+    "alembic==1.20.1",
+    "pydantic-settings==2.16.2",
+    "asyncpg==0.32.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fridge"]
