@@ -11,8 +11,10 @@ engine = create_async_engine(
     str(settings.DATABASE_URL),
     pool_size=settings.DB_POOL_SIZE,
     max_overflow=settings.DB_MAX_OVERFLOW,
-    pool_pre_ping=True,  # Проверка живости соединения
-    echo=settings.DEBUG, # Логировать SQL в дебаге
+    # Проверка живости соединения
+    pool_pre_ping=True,
+    # Логировать SQL в дебаге
+    echo=settings.DEBUG,
 )
 
 # Фабрика сессий
@@ -21,6 +23,7 @@ async_session_factory = async_sessionmaker(
     class_=AsyncSession,
     expire_on_commit=False,
 )
+
 
 async def get_db() -> AsyncIterator[AsyncSession]:
     """Зависимость FastAPI для получения сессии БД на один запрос."""
