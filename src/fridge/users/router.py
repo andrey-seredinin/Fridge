@@ -1,7 +1,9 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
+from fastapi import HTTPException
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fridge.core.security import hash_password
@@ -43,9 +45,23 @@ async def create_user(
     # создание пользователя
     user = User(email=user_data.email, hashed_password=hashed_password)
 
-    # добавление объекта в сессию, сохранение изменений и обновление объекта
+    # добавление объекта в сессию
     session.add(user)
-    await session.commit()
+
+    try:
+        # сохранение изменений
+        await session.commit()
+
+    # Обработка ошибки создания пользователя с одинаковой почтой
+    except IntegrityError:
+        # Возврат сессии в рабочее состояние
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail='Пользователь с такой почтой уже существует'
+        )
+
+    # обновление объекта
     await session.refresh(user)
 
     return user
