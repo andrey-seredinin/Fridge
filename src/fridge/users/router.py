@@ -6,10 +6,10 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from fridge.core.security import hash_password
 from fridge.db.session import get_db
 from fridge.users.models import User
 from fridge.users.schemas import UsersGet, UserCreate, UserRead
+from fridge.users.service import create_user_service
 
 router = APIRouter(
     # общий префикс URL для всех эндпоинтов этого роутера
@@ -39,18 +39,9 @@ async def create_user(
         session: Annotated[AsyncSession, Depends(get_db)],
 ):
     """Создание пользователя"""
-    # хэшируем пароль
-    hashed_password = hash_password(user_data.password)
-
-    # создание пользователя
-    user = User(email=user_data.email, hashed_password=hashed_password)
-
-    # добавление объекта в сессию
-    session.add(user)
-
     try:
-        # сохранение изменений
-        await session.commit()
+        # функция создания пользователя в сервисном слое
+        return await create_user_service(user_data, session)
 
     # Обработка ошибки создания пользователя с одинаковой почтой
     except IntegrityError:
@@ -60,8 +51,3 @@ async def create_user(
             status_code=status.HTTP_409_CONFLICT,
             detail='Пользователь с такой почтой уже существует'
         )
-
-    # обновление объекта
-    await session.refresh(user)
-
-    return user
