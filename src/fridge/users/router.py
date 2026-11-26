@@ -3,13 +3,12 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 from fastapi import HTTPException
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fridge.db.session import get_db
 from fridge.users.exceptions import EmailAlreadyExistsError
 from fridge.users.models import User
-from fridge.users.schemas import UsersGet, UserCreate, UserRead
+from fridge.users.schemas import UsersGetOrRead, UserCreate
 from fridge.users.service import create_user_service
 
 router = APIRouter(
@@ -20,7 +19,7 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=list[UsersGet])
+@router.get("/", response_model=list[UsersGetOrRead])
 async def get_users(
     session: Annotated[AsyncSession, Depends(get_db)],
 ):
@@ -34,7 +33,7 @@ async def get_users(
     return users
 
 
-@router.post("/create_user", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+@router.post("/create_user", response_model=UsersGetOrRead, status_code=status.HTTP_201_CREATED)
 async def create_user(
         user_data: UserCreate,
         session: Annotated[AsyncSession, Depends(get_db)],

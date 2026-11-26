@@ -1,6 +1,3 @@
-from typing import Annotated
-
-from fastapi import Depends
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -28,11 +25,18 @@ async def create_user_service(
         # сохранение изменений
         await session.commit()
 
-    # Обработка ошибки
+    # Обработка ошибок
     except IntegrityError as exc:
         # Возврат сессии в рабочее состояние
         await session.rollback()
-        raise EmailAlreadyExistsError() from exc
+
+        # Проверка, что почта не занята
+        constraint_name = getattr(exc.orig.__cause__, "constraint_name", None)
+        if constraint_name == "uq_users_email":
+            raise EmailAlreadyExistsError() from exc
+
+        # Остальные ошибки
+        raise
 
     # обновление объекта
     await session.refresh(user)
