@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import String, Boolean, DateTime, func
+from sqlalchemy import String, Boolean, DateTime, func, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -11,6 +11,9 @@ from fridge.db.base import Base
 class User(Base):
     __tablename__ = "users"
 
+    # обработка ошибки для уникального email
+    __table_args__ = (UniqueConstraint("email", name="uq_users_email")),
+
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
@@ -18,7 +21,6 @@ class User(Base):
     )
     email: Mapped[str] = mapped_column(
         String(255),
-        unique=True,
         nullable=False,
     )
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
