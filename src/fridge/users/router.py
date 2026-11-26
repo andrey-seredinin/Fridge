@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fridge.db.session import get_db
+from fridge.users.exceptions import EmailAlreadyExistsError
 from fridge.users.models import User
 from fridge.users.schemas import UsersGet, UserCreate, UserRead
 from fridge.users.service import create_user_service
@@ -44,9 +45,7 @@ async def create_user(
         return await create_user_service(user_data, session)
 
     # Обработка ошибки создания пользователя с одинаковой почтой
-    except IntegrityError:
-        # Возврат сессии в рабочее состояние
-        await session.rollback()
+    except EmailAlreadyExistsError:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail='Пользователь с такой почтой уже существует'

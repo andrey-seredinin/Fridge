@@ -1,18 +1,19 @@
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fridge.core.security import hash_password
 from fridge.db.session import get_db
+from fridge.users.exceptions import EmailAlreadyExistsError
 from fridge.users.models import User
 from fridge.users.schemas import UserCreate
 
 
 async def create_user_service(
         user_data: UserCreate,
-        session: Annotated[AsyncSession, Depends(get_db)],
+        session: AsyncSession,
 ) -> User:
     """Создание пользователя в сервисном слое"""
     # хэшируем пароль
@@ -29,10 +30,10 @@ async def create_user_service(
         await session.commit()
 
     # Обработка ошибки
-    except IntegrityError:
+    except IntegrityError as exc:
         # Возврат сессии в рабочее состояние
         await session.rollback()
-        raise
+        raise EmailAlreadyExistsError() from exc
 
     # обновление объекта
     await session.refresh(user)
