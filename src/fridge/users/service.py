@@ -5,7 +5,6 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fridge.core.security import hash_password
-from fridge.db.session import get_db
 from fridge.users.exceptions import EmailAlreadyExistsError
 from fridge.users.models import User
 from fridge.users.schemas import UserCreate
